@@ -1,8 +1,8 @@
-# tryhackme-Pyratt-Writeup
+# tryhackme-Pyrat-Writeup
 ![intro](https://github.com/user-attachments/assets/28e04153-3286-4a8a-8d50-29f529071f88)
 # tryhackme-Pyratt-Writeup
 
-This is a walkthrough for the tryhackme CTF Pyratt. I will not provide any flags or passwords as this is intended to be used as a guide. Think you're up for the Challange?
+This is a walkthrough for the tryhackme CTF Pyrat. I will not provide any flags or passwords as this is intended to be used as a guide. 
 
 ## Scanning/Reconnaissance
 
