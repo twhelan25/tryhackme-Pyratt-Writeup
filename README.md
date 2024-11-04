@@ -56,3 +56,8 @@ Running cat /etc/passwd reveals a user named think. I tried to navigate to home/
 ![think](https://github.com/user-attachments/assets/eb724ecd-2c11-406b-8570-102953979d5f)
 
 Navigating to this directory we see a lot of files and dirs and www-data has read access to. The config file reveals credentials for think. Let's try to use these to ssh onto the target.
+
+![ssh_think](https://github.com/user-attachments/assets/8b7b90ba-6939-4856-8c09-42550351c936)
+
+Tbey worked, and we can now reveal the user flag from think's home dir.
+
