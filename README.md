@@ -17,10 +17,25 @@ nmap -sV -sC -A -v $ip -oN
 
 Command break down:
 
--A: This flag enables aggressive scanning. It combines various scan types (like OS detection, version detection, script scanning, and traceroute) into a single scan.
+-sV
 
--v: increases verbosity, providing more detailed output during the scan.
+Service Version Detection: This option enables version detection, which attempts to determine the version of the software running on open ports. For example, it might identify an HTTP server as Apache with a specific version.
+-sC
 
-—$ip: provides the target IP we stored as the variable $ip.
+Default Scripts: This option runs a collection of default NSE (Nmap Scripting Engine) scripts that are commonly useful. These scripts perform various functions like checking for vulnerabilities, gathering additional information, and identifying open services. They’re a good starting point for gathering basic information about a host.
+-A
 
--oN nmap.txt: This option specifies normal output that should be saved to a file named “nmap.txt.
+Aggressive Scan: This option enables several scans at once. It combines OS detection (-O), version detection (-sV), script scanning (-sC), and traceroute (--traceroute). It’s useful for a comprehensive scan but can be intrusive and time-consuming.
+-v
+
+Verbose Mode: Enables verbose output, which provides more detailed information about the scan’s progress and results.
+$ip
+
+Target IP: This is a placeholder for the target IP address you want to scan. In practice, replace $ip with the actual IP of the machine you are targeting.
+-oN
+
+Output in Normal Format: This option saves the scan results in a plain text file format. After -oN, specify a filename where you want to store the output.
+The scan reveals some interesting information:
+
+![nmap](https://github.com/user-attachments/assets/96e6f487-b646-49d4-97a9-f7a41358ce6f)
+
